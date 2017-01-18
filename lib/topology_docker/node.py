@@ -31,9 +31,9 @@ from abc import ABCMeta, abstractmethod
 from docker import Client
 from six import add_metaclass
 
-from topology.platforms.base import CommonNode
+from topology.platforms.node import CommonNode
 from topology_docker.utils import ensure_dir
-
+from topology_docker.connection import DockerConnection
 
 log = getLogger(__name__)
 
@@ -152,6 +152,14 @@ class DockerNode(CommonNode):
             host_config=self._host_config,
             environment=self._environment
         )['Id']
+
+        self._docker_register_connection_types()
+
+    def _docker_register_connection_types(self):
+        """
+        register the connection types for this node
+        """
+        self._register_connection_type('docker', DockerConnection)
 
     def _autopull(self):
         """

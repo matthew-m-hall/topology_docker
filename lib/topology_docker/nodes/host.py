@@ -23,7 +23,7 @@ from __future__ import unicode_literals, absolute_import
 from __future__ import print_function, division
 
 from topology_docker.node import DockerNode
-from topology_docker.shell import DockerBashShell
+from topology_docker.shell import DockerBashShell, DockerBashFrontPanelShell
 
 
 class HostNode(DockerNode):
@@ -40,20 +40,13 @@ class HostNode(DockerNode):
 
         super(HostNode, self).__init__(identifier, image=image, **kwargs)
 
-        # Create and register shells
-        self._register_shell(
-            'bash',
-            DockerBashShell(
-                self.container_id,
-                'bash'
-            )
-        )
-        self._register_shell(
-            'bash_front_panel',
-            DockerBashShell(
-                self.container_id,
-                'ip netns exec front_panel bash'
-            )
+    def _register_shells(self, connectionobj):
+        """
+        See :meth:`CommonNode._register_shells` for more information.
+        """
+        connectionobj._register_shell('bash', DockerBashShell())
+        connectionobj._register_shell(
+            'bash_front_panel', DockerBashFrontPanelShell()
         )
 
 

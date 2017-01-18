@@ -57,8 +57,8 @@ def test_add_port():
 
     platform.destroy()
 
-    assert 'p1: <BROADCAST,MULTICAST> ' in result
-    assert 'p2: <BROADCAST,MULTICAST> ' in result
+    assert 'p1: <BROADCAST,MULTICAST,M-DOWN> ' in result
+    assert 'p2: <BROADCAST,MULTICAST,M-DOWN> ' in result
     assert 'p3: <BROADCAST,MULTICAST> ' in result
 
 

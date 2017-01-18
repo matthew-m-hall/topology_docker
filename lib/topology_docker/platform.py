@@ -26,11 +26,11 @@ import logging
 from traceback import format_exc
 from collections import OrderedDict
 
-from topology.platforms.base import BasePlatform
+from topology.platforms.platform import BasePlatform
 from topology.platforms.utils import NodeLoader
 
-from .node import DockerNode
-from .utils import tmp_iface, privileged_cmd
+from topology_docker.node import DockerNode
+from topology_docker.utils import tmp_iface, privileged_cmd
 
 
 log = logging.getLogger(__name__)
@@ -218,6 +218,7 @@ class DockerPlatform(BasePlatform):
         # Notify nodes of the post_build event
         for enode in self.nmlnode_node_map.values():
             enode.notify_post_build()
+            enode.connect()
 
     def destroy(self):
         """

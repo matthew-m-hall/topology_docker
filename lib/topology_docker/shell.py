@@ -25,41 +25,64 @@ from __future__ import print_function, division
 from topology.platforms.shell import PExpectShell, PExpectBashShell
 
 
-class DockerExecMixin(object):
-    """
-    Docker ``exec`` connection mixin for the Topology shell API.
-
-    This class implements a ``_get_connect_command()`` method that allows to
-    interact with a shell through a ``docker exec`` interactive command, and
-    extends the constructor to request for container related parameters.
-
-    :param str container: Container unique identifier.
-    :param str command: Command to be executed with the ``docker exec`` that
-     will launch an interactive session.
-    """
-
-    def __init__(self, container, command, *args, **kwargs):
-        self._container = container
-        self._command = command
-        super(DockerExecMixin, self).__init__(*args, **kwargs)
-
-    def _get_connect_command(self):
-        return 'docker exec -i -t {} {}'.format(
-            self._container, self._command
-        )
-
-
-class DockerShell(DockerExecMixin, PExpectShell):
+class DockerShell(PExpectShell):
     """
     Generic ``docker exec`` shell for unspecified interactive session.
     """
 
 
-class DockerBashShell(DockerExecMixin, PExpectBashShell):
+class DockerBashShell(PExpectBashShell):
     """
     Specialized ``docker exec`` shell that will run and setup a bash
     interactive session.
     """
+
+
+class DockerBashFrontPanelShell(DockerBashShell):
+    """
+    Openswitch Telnet-connected ``bash`` ``swns`` shell.
+
+    This shell spawns a ``bash`` shell inside the ``swns`` network namespace.
+    """
+
+    def __init__(self):
+        self._start_command = 'ip netns exec front_panel bash'
+
+        super(DockerBashFrontPanelShell, self).__init__()
+
+    def enter(self):
+        """
+        see :meth:`topology.platforms.shell.BaseShell.enter` for more
+        information.
+        """
+        spawn = self._parent_connection._spawn
+        spawn.sendline(self._start_command)
+        spawn.expect(self._prompt)
+
+    def exit(self):
+        """
+        see :meth:`topology.platforms.shell.BaseShell.exit` for more
+        information.
+        """
+        spawn = self._parent_connection._spawn
+        spawn.sendline('exit')
+        spawn.expect(self._prompt)
+
+    def _setup_shell(self):
+        """
+        See :meth:`topology.platforms.shell.BaseShell._setup_shell` for more
+        information.
+        """
+
+        super(DockerBashFrontPanelShell, self)._setup_shell()
+
+        spawn = self._parent_connection._spawn
+        spawn.sendline(self._start_command)
+        spawn.expect(self._initial_prompt)
+
+        # some docker images have an issue where subshells dont inherit
+        # the environment, so we call setup_shell again
+        super(DockerBashFrontPanelShell, self)._setup_shell()
 
 
 __all__ = ['DockerShell', 'DockerBashShell']
